@@ -1,0 +1,8 @@
+add in time checker for first got too to account for overshoot
+thread it all....
+data analysis
+data output
+proper error handling
+check temperature range values are sensible
+if error occurs in main it loses connection
+add in waits around data collection so it does double stack imediately
