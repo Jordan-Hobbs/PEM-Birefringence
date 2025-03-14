@@ -2,15 +2,6 @@ import pyvisa
 import threading
 
 
-def write_handler(instrument, command_string):
-    try:
-        instrument.write(command_string)
-        return None
-    except Exception as e:
-        print(f"Could not write {command_string} to {instrument}: ", e)
-        return e
-
-
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
         self.address = address
@@ -20,15 +11,15 @@ class LinkamHotstage:
     def initialise_linkam(self) -> None:
         rm = pyvisa.ResourceManager()
 
-        self.link = rm.open_resource(self.address)
-        self.init = False
+        self.linkam = rm.open_resource(self.address)
+        self.initam = False
 
-        self.link.baud_rate = 19200  # type: ignore
+        self.linkam.baud_rate = 19200  # type: ignore
 
-        self.link.read_termination = "\r"  # type: ignore
-        self.link.write_termination = "\r"  # type: ignore
+        self.linkam.read_termination = "\r"  # type: ignore
+        self.linkam.write_termination = "\r"  # type: ignore
 
-        self.link.timeout = 3000
+        self.linkam.timeout = 3000
 
         try:
             temp = self.current_temperature()
@@ -43,32 +34,32 @@ class LinkamHotstage:
     def set_temperature(self, T: float, rate: float = 20.0) -> None:
         if self.init:
             with self.lock:
-                self.link.write(f"R1{int(rate * 100)}")  # type: ignore
-                self.link.read()  # type: ignore
-                self.link.write(f"L1{int(T * 10)}")  # type: ignore
-                self.link.read()  # type: ignore
+                self.linkam.write(f"R1{int(rate * 100)}")  # type: ignore
+                self.linkam.read()  # type: ignore
+                self.linkam.write(f"L1{int(T * 10)}")  # type: ignore
+                self.linkam.read()  # type: ignore
         else:
             with self.lock:
-                self.link.write(f"R1{int(rate * 100)}")  # type: ignore
-                self.link.read()  # type: ignore
-                self.link.write(f"L1{int(T * 10)}")  # type: ignore
-                self.link.read()  # type: ignore
-                self.link.write("S")  # type: ignoreL
-                self.link.read()
+                self.linkam.write(f"R1{int(rate * 100)}")  # type: ignore
+                self.linkam.read()  # type: ignore
+                self.linkam.write(f"L1{int(T * 10)}")  # type: ignore
+                self.linkam.read()  # type: ignore
+                self.linkam.write("S")  # type: ignoreL
+                self.linkam.read()
 
                 self.init = True
 
     def stop(self) -> None:
         with self.lock:
-            self.link.write("E")  # type: ignore
-            self.link.read()  # type: ignore
+            self.linkam.write("E")  # type: ignore
+            self.linkam.read()  # type: ignore
             self.init = False
 
     def current_temperature(self) -> tuple[float, str]:
         with self.lock:
             try:
-                self.link.write("T")  # type: ignore
-                raw_string = self.link.read_raw()  # type: ignore
+                self.linkam.write("T")  # type: ignore
+                raw_string = self.linkam.read_raw()  # type: ignore
             except UnicodeDecodeError:
                 return 0.0, 0.0
         status_byte = int(raw_string[0])
@@ -90,7 +81,7 @@ class LinkamHotstage:
         return temperature, status
 
     def close(self):
-        self.link.close()
+        self.linkam.close()
 
 class SRLockinAmplifier:
     def __init__(self, address: str):
