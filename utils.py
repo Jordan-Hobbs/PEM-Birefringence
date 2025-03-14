@@ -9,6 +9,7 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
         temps = temp_generator(start, stop, step)
         v1f = []
         v2f = []
+        m_temps = []
 
         if hotstage.current_temperature()[0] != start:
             hotstage.set_temperature(start, 50)
@@ -27,16 +28,18 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
             while True:
                 c_temp, status = hotstage.current_temperature()
                 if c_temp == temp and status == "Holding":
-                    v1, v2 = lockin.read_dualharmonic_data()
-                    v1f.append(v1)
-                    v2f.append(v2)
+                    x1, x2 = lockin.read_dualharmonic_data()
+                    m_temps.append(c_temp)
+                    v1f.append(x1)
+                    v2f.append(x2)
                     time.sleep(2)
                     break
                 else:
                     continue
+
         hotstage.close()
         lockin.close()
-        return v1f, v2f
+        return m_temps, v1f, v2f
     
     elif values_valid == False:
         hotstage.close()
@@ -52,7 +55,7 @@ def data_analysis(v1f, v2f):
     for v1, v2 in zip(v1f, v2f):
         if v1 == 0 or v2 == 0:
             ret.append(np.nan)
-            print("Careful! one value out found at zero")
+            print("Careful! one value found at zero")
             continue
 
         delta = np.arctan((v1/v2))
