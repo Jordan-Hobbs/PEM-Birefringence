@@ -13,26 +13,25 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
         m_temps = []
 
         if hotstage.current_temperature()[0] != start:
-            print(f"Going to start temp @ {start} C")
+            print(f"Going to start temperature at {start} C")
             hotstage.set_temperature(start, 50)
             hotstage.validate_temperature(start)
+            print(f"At {start} C waiting for initial stabilisation")
             time.sleep(90)
         else:
             pass
 
         for temp in temps:
             print(f"Running {temp} C process")
-            if abs(temp - hotstage.current_temperature()[0]) >= 0.1:
-                hotstage.set_temperature(temp, rate)
-                print(f"Waiting for stabilisation at {temp} C")                
-                hotstage.validate_temperature(temp)
-                time.sleep(15)
-                print(f"Temperature stabilised at {temp} C")
-            else:
-                pass
-            
+            hotstage.set_temperature(temp, rate)
+            print(f"Waiting for stabilisation at {temp} C")                
+            hotstage.validate_temperature(temp)
+            time.sleep(15)
+            print(f"Temperature stabilised at {temp} C")
+
             n=0
-            while n<120:  
+            while n<120:
+                print(n)
             # seems silly to stick all of this in a while loop but cant think 
             # of a better way to continously check for temp and status
             # it does allow for timeout check so maybe not so bad
@@ -46,6 +45,7 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
                     time.sleep(1)
                     break
                 else:
+                    n += 1
                     time.sleep(1)
                     continue
             if n>=120:

@@ -45,7 +45,7 @@ class LinkamHotstage:
                 self.linkam.read()  # type: ignore
                 self.linkam.write(f"L1{int(T * 10)}")  # type: ignore
                 self.linkam.read()  # type: ignore
-                self.linkam.write("S")  # type: ignoreL
+                self.linkam.write("S")  # type: ignore
                 self.linkam.read()
 
                 self.init = True
