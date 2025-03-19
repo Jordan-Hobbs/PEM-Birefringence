@@ -12,7 +12,7 @@ class LinkamHotstage:
         rm = pyvisa.ResourceManager()
 
         self.linkam = rm.open_resource(self.address)
-        self.initam = False
+        self.init = False
 
         self.linkam.baud_rate = 19200  # type: ignore
 

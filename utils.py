@@ -5,6 +5,7 @@ import time, numpy as np
 
 def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
     values_valid = hotstage_values_check(start, stop, step, rate)
+    print(values_valid)
     if values_valid == True:
         temps = temp_generator(start, stop, step)
         v1f = []
@@ -12,6 +13,7 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
         m_temps = []
 
         if hotstage.current_temperature()[0] != start:
+            print(f"Going to start temp @ {start} C")
             hotstage.set_temperature(start, 50)
             wait_for_temperature(start, hotstage)
             time.sleep(90)
@@ -19,9 +21,12 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
             pass
 
         for temp in temps:
+            print(f"Running {temp} C process")
             if abs(temp - hotstage.current_temperature()[0]) > 0.1:
+                print("Waiting for stabilisation")
                 hotstage.set_temperature(temp, rate)
                 wait_for_temperature(temp, hotstage)
+                print("there")
                 time.sleep(15)
             else:
                 pass
@@ -33,6 +38,7 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
                     v1f.append(x1)
                     v2f.append(x2)
                     time.sleep(2)
+                    print(f"{temp} C done")
                     break
                 else:
                     continue
@@ -77,6 +83,7 @@ def data_analysis(v1f, v2f):
 def wait_for_temperature(end_temp, hotstage):
     while True:
         temperature = hotstage.current_temperature()[0]
+        print(abs(end_temp-temperature))
         if temperature is None:
             continue
         if abs(end_temp-temperature) <= 0.1:
