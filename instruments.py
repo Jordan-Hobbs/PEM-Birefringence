@@ -1,5 +1,6 @@
 import pyvisa
 import threading
+import time
 
 
 class LinkamHotstage:
@@ -79,6 +80,16 @@ class LinkamHotstage:
         except ValueError:
             return 0.0, 0.0
         return temperature, status
+
+    def validate_temperature(self, end_temp):
+        while True:
+            temperature = round(self.current_temperature()[0], 1) # rounds temp to 1 decimal place to stop floating point fuckery
+            if temperature is None:
+                continue
+            if abs(end_temp-temperature) <= 0.1:
+                break
+            time.sleep(0.1)
+
 
     def close(self):
         self.linkam.close()
