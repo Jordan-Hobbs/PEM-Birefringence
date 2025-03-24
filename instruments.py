@@ -1,5 +1,7 @@
 import pyvisa
 import threading
+import time
+import numpy as np
 
 
 class LinkamHotstage:
@@ -12,7 +14,7 @@ class LinkamHotstage:
         rm = pyvisa.ResourceManager()
 
         self.linkam = rm.open_resource(self.address)
-        self.initam = False
+        self.init = False
 
         self.linkam.baud_rate = 19200  # type: ignore
 
@@ -44,7 +46,7 @@ class LinkamHotstage:
                 self.linkam.read()  # type: ignore
                 self.linkam.write(f"L1{int(T * 10)}")  # type: ignore
                 self.linkam.read()  # type: ignore
-                self.linkam.write("S")  # type: ignoreL
+                self.linkam.write("S")  # type: ignore
                 self.linkam.read()
 
                 self.init = True
@@ -79,6 +81,17 @@ class LinkamHotstage:
         except ValueError:
             return 0.0, 0.0
         return temperature, status
+
+    def validate_temperature(self, end_temp):
+        while True:
+            temperature = self.current_temperature()[0]
+            if temperature is None:
+                continue
+            print(round(abs(end_temp-temperature),1))
+            if round(abs(end_temp-temperature),1) <= 0.1:
+                break
+            time.sleep(0.1)
+        return True
 
     def close(self):
         self.linkam.close()
@@ -125,7 +138,6 @@ class SRLockinAmplifier:
 
         if (nStatusByte & 0x80 == 0x80): # if data available
             sResponse = self.lockin.read() # read data
-            sResponse = sResponse[0:len(sResponse)-1:] # strip the CR LF terminator
         
         while (nStatusByte & 0x01 != 0x01): # read status byte until bit 1 is asserted
             nStatusByte = int(self.lockin.stb)
