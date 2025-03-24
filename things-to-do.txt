@@ -1,0 +1,7 @@
+add in time checker for first got too to account for overshoot - done?
+thread it all....
+data output - done?
+proper error handling
+if error occurs in main it loses connection
+add in some form of gui
+add in graphing of the data so its all visualised as it runs
