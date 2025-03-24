@@ -1,6 +1,7 @@
 import pyvisa
 import threading
 import time
+import numpy as np
 
 
 class LinkamHotstage:
@@ -83,13 +84,14 @@ class LinkamHotstage:
 
     def validate_temperature(self, end_temp):
         while True:
-            temperature = round(self.current_temperature()[0], 1) # rounds temp to 1 decimal place to stop floating point fuckery
+            temperature = self.current_temperature()[0]
             if temperature is None:
                 continue
-            if abs(end_temp-temperature) <= 0.1:
+            print(round(abs(end_temp-temperature),1))
+            if round(abs(end_temp-temperature),1) <= 0.1:
                 break
             time.sleep(0.1)
-
+        return True
 
     def close(self):
         self.linkam.close()
@@ -136,7 +138,6 @@ class SRLockinAmplifier:
 
         if (nStatusByte & 0x80 == 0x80): # if data available
             sResponse = self.lockin.read() # read data
-            sResponse = sResponse[0:len(sResponse)-1:] # strip the CR LF terminator
         
         while (nStatusByte & 0x01 != 0x01): # read status byte until bit 1 is asserted
             nStatusByte = int(self.lockin.stb)
