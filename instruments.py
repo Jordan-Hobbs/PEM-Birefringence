@@ -1,7 +1,6 @@
 import pyvisa
 import threading
 import time
-import numpy as np
 
 
 class LinkamHotstage:
@@ -87,7 +86,7 @@ class LinkamHotstage:
             temperature = self.current_temperature()[0]
             if temperature is None:
                 continue
-            print(round(abs(end_temp-temperature),1))
+            print(temperature)
             if round(abs(end_temp-temperature),1) <= 0.1:
                 break
             time.sleep(0.1)

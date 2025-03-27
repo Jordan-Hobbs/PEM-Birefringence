@@ -2,7 +2,7 @@ import utils
 import time
 import numpy as np
 
-def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
+def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin):
     values_valid = utils.hotstage_values_check(start, stop, step, rate)
     if values_valid == True:
         print("Input params valid")
@@ -20,13 +20,15 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
         else:
             pass
 
+        calc = utils.analysis(cellgap, wavelength)
+        output = utils.output_writer(file_name)
         for temp in temps:
-            attemp = False
+            at_temp = False
             print(f"Running {temp} C process")
             hotstage.set_temperature(temp, rate)
             print(f"Waiting for stabilisation at {temp} C")
             time.sleep(10)   
-            attemp = hotstage.validate_temperature(temp)
+            at_temp = hotstage.validate_temperature(temp)
             time.sleep(10)
             print(f"Temperature stabilised at {temp} C")
 
@@ -36,11 +38,11 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
             # of a better way to continously check for temp and status
             # it does allow for timeout check so maybe not so bad
                 c_temp, status = hotstage.current_temperature()
-                if attemp == True and status == "Holding":
+                if at_temp == True and status == "Holding":
                     x1, x2 = lockin.read_dualharmonic_data()
                     m_temps.append(c_temp)
-                    v1f.append(x1)
-                    v2f.append(x2)
+                    ret, biref = calc.compute_biref(x1, x2)
+                    output.write_csv_row([c_temp, x1, x2, ret, biref])
                     print(f"Measurement at {temp} C done")
                     time.sleep(1)
                     break
@@ -51,9 +53,10 @@ def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
             if n>=120:
                 m_temps.append(np.nan)
                 v1f.append(np.nan)
-                v2f.append(np.nan)
+                v2f.append(np.nan) # FIX THIISSSSSSS!!!!!!!!!!
                 print(f"Measurement at {temp} C skipped due to timeout")
         
+        output.close()
         hotstage.close()
         lockin.close()
         return m_temps, v1f, v2f
