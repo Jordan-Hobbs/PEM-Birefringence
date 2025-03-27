@@ -40,7 +40,6 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
                 c_temp, status = hotstage.current_temperature()
                 if at_temp == True and status == "Holding":
                     x1, x2 = lockin.read_dualharmonic_data()
-                    m_temps.append(c_temp)
                     ret, biref = calc.compute_biref(x1, x2)
                     output.write_csv_row([c_temp, x1, x2, ret, biref])
                     print(f"Measurement at {temp} C done")
@@ -51,9 +50,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
                     time.sleep(1)
                     continue
             if n>=120:
-                m_temps.append(np.nan)
-                v1f.append(np.nan)
-                v2f.append(np.nan) # FIX THIISSSSSSS!!!!!!!!!!
+                output.write_csv_row([c_temp, np.nan, np.nan, np.nan, np.nan])
                 print(f"Measurement at {temp} C skipped due to timeout")
         
         output.close()
@@ -62,6 +59,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
         return m_temps, v1f, v2f
     
     elif values_valid == False:
+        print("Input params invalid")
         hotstage.close()
         lockin.close()
         return False, False, False
