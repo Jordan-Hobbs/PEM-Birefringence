@@ -3,6 +3,7 @@ import time
 import numpy as np
 
 def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin):
+
     values_valid = utils.hotstage_values_check(start, stop, step, rate)
     if values_valid == True:
         print("Input params valid")
@@ -54,14 +55,6 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
                 print(f"Measurement at {temp} C skipped due to timeout")
         
         output.close()
-        hotstage.close()
-        lockin.close()
-        return m_temps, v1f, v2f
-    
+
     elif values_valid == False:
         print("Input params invalid")
-        hotstage.close()
-        lockin.close()
-        return False, False, False
-
-

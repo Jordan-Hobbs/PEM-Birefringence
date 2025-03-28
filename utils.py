@@ -65,5 +65,3 @@ class output_writer:
     def close(self):
         self.file.close()
 
-
-

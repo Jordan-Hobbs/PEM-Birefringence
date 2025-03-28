@@ -2,7 +2,6 @@ import pyvisa
 import threading
 import time
 
-
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
         self.address = address
