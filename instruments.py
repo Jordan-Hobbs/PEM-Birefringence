@@ -1,8 +1,6 @@
 import pyvisa
 import threading
 import time
-import numpy as np
-
 
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
@@ -87,7 +85,7 @@ class LinkamHotstage:
             temperature = self.current_temperature()[0]
             if temperature is None:
                 continue
-            print(round(abs(end_temp-temperature),1))
+            print(temperature)
             if round(abs(end_temp-temperature),1) <= 0.1:
                 break
             time.sleep(0.1)
@@ -125,7 +123,7 @@ class SRLockinAmplifier:
     def read_dualharmonic_data(self):
         v1, b1 = self.send_command("X1.") # asks for X value from channel one
         v2, b2 = self.send_command("X2.") # asks for X value from channel two
-        return v1, v2
+        return float(v1), float(v2)
 
     def send_command(self, sCmd):
         self.lockin.write(sCmd)
