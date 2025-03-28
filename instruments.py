@@ -124,7 +124,7 @@ class SRLockinAmplifier:
     def read_dualharmonic_data(self):
         v1, b1 = self.send_command("X1.") # asks for X value from channel one
         v2, b2 = self.send_command("X2.") # asks for X value from channel two
-        return v1, v2
+        return float(v1), float(v2)
 
     def send_command(self, sCmd):
         self.lockin.write(sCmd)
