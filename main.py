@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 
-def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin, plotter=None):
+def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin, plotter):
 
     if not utils.hotstage_values_check(start, stop, step, rate):
         print("Input params invalid")
@@ -39,9 +39,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
                     ret, biref = calc.compute_biref(x1, x2)
                     output.write_csv_row([c_temp, x1, x2, ret, biref])
                     print(f"[{time.strftime('%H:%M:%S')}] Measurement at {temp} C done")
-
-                    if plotter is not None:
-                        plotter.update(c_temp, ret, biref)
+                    plotter.update(c_temp, ret, biref)
 
                     time.sleep(1)
                     break
