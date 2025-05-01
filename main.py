@@ -8,9 +8,6 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
     if values_valid == True:
         print("Input params valid")
         temps = utils.temp_generator(start, stop, step)
-        v1f = []
-        v2f = []
-        m_temps = []
 
         if hotstage.current_temperature()[0] != start:
             print(f"Going to start temperature at {start} C")

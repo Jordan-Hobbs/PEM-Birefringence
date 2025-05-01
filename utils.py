@@ -53,7 +53,7 @@ class analysis:
 class output_writer:
     def __init__(self, file_name):
         self.file_name = file_name
-        self.file = open(self.file_name, mode = "a", newline = "")
+        self.file = open(self.file_name, mode = "w", newline = "")
         self.writer = csv.writer(self.file)
         self.writer.writerow(["T (C)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
         self.file.flush()
