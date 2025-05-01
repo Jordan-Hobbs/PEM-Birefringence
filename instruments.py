@@ -1,6 +1,8 @@
-import pyvisa
 import threading
 import time
+
+import pyvisa
+import numpy as np
 
 class LinkamHotstage:
     def __init__(self, address: str) -> None:
@@ -61,7 +63,7 @@ class LinkamHotstage:
                 self.linkam.write("T")  # type: ignore
                 raw_string = self.linkam.read_raw()  # type: ignore
             except UnicodeDecodeError:
-                return 0.0, 0.0
+                return 0.0, "Error"
         status_byte = int(raw_string[0])
 
         if status_byte == 1:
@@ -77,19 +79,22 @@ class LinkamHotstage:
         try:
             temperature = int(raw_string[6:10], 16) / 10.0
         except ValueError:
-            return 0.0, 0.0
+            return 0.0, "Error"
         return temperature, status
 
-    def validate_temperature(self, end_temp):
+    def validate_temperature(self, end_temp, tolerance=0.1):
+        start_time = time.time()
+
         while True:
-            temperature = self.current_temperature()[0]
+            temperature, status = self.current_temperature()
             if temperature is None:
+                time.sleep(1)
                 continue
-            print(temperature)
-            if round(abs(end_temp-temperature),1) <= 0.1:
-                break
-            time.sleep(0.1)
-        return True
+            print(f"Current temperature: {temperature:.2f} °C")
+            if abs(end_temp - temperature) <= tolerance:
+                return True
+            time.sleep(1)
+
 
     def close(self):
         self.linkam.close()
@@ -121,9 +126,13 @@ class SRLockinAmplifier:
         self.send_command("SEN 25") # sets senstivity - check it is suitible
 
     def read_dualharmonic_data(self):
-        v1, b1 = self.send_command("X1.") # asks for X value from channel one
-        v2, b2 = self.send_command("X2.") # asks for X value from channel two
-        return float(v1), float(v2)
+        try:
+            v1, _ = self.send_command("X1.")
+            v2, _ = self.send_command("X2.")
+            return float(v1), float(v2)
+        except ValueError:
+            return np.nan, np.nan
+
 
     def send_command(self, sCmd):
         self.lockin.write(sCmd)
