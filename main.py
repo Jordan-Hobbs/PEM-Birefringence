@@ -1,9 +1,10 @@
-import utils
-import time
-
 import numpy as np
 
-def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin, plotter):
+import utils
+import time
+import disp
+
+def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin):
 
     if not utils.hotstage_values_check(start, stop, step, rate):
         print("Input params invalid")
@@ -22,6 +23,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
 
     calc = utils.Analysis(cellgap, wavelength)
     output = utils.OutputWriter(file_name)
+    plotter = disp.Plotter()
     try:
         for temp in temps:
             print(f"Running {temp} C process")

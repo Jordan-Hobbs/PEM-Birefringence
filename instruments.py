@@ -91,7 +91,7 @@ class LinkamHotstage:
                 time.sleep(1)
                 continue
             print(f"Current temperature: {temperature:.2f} °C")
-            if abs(end_temp - temperature) <= tolerance:
+            if round(abs(end_temp - temperature),2) <= tolerance:
                 return True
             time.sleep(1)
 

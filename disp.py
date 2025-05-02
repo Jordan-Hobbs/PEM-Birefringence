@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 class Plotter:
     def __init__(self, show_biref=True):
@@ -37,4 +37,5 @@ class Plotter:
             self.ax2.autoscale_view()
 
         self.fig.canvas.draw()
-        plt.pause(0.1)  # Pause for a moment to allow updates
+        self.fig.canvas.flush_events()
+        plt.pause(0.1)
