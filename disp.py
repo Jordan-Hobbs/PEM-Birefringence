@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import time
 
 class Plotter:
     def __init__(self, show_biref=True):
@@ -10,18 +11,17 @@ class Plotter:
         self.fig, self.ax1 = plt.subplots()
         self.ax1.set_xlabel("Temperature (°C)")
         self.ax1.set_ylabel("Retardance (nm)", color='tab:blue')
-        self.line1, = self.ax1.plot([], [], 'o-', color='tab:blue', label='Retardance')
+        self.line1, = self.ax1.plot([], [], 'o-', color='tab:blue')
 
         if show_biref:
             self.ax2 = self.ax1.twinx()
             self.ax2.set_ylabel("Birefringence", color='tab:red')
-            self.line2, = self.ax2.plot([], [], 'x--', color='tab:red', label='Birefringence')
+            self.line2, = self.ax2.plot([], [], 'x--', color='tab:red')
         else:
             self.ax2 = None
 
         self.fig.tight_layout()
-
-        plt.ion()  # Turn on interactive mode
+        plt.ion()
 
     def update(self, temp, retardance, biref):
         self.temps.append(temp)
@@ -39,3 +39,9 @@ class Plotter:
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
         plt.pause(0.1)
+
+plotter = Plotter()
+
+for t in range(25, 40):
+    plotter.update(t, t*2, t*0.01)
+    time.sleep(0.2)

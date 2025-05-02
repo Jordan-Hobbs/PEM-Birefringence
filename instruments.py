@@ -95,7 +95,6 @@ class LinkamHotstage:
                 return True
             time.sleep(1)
 
-
     def close(self):
         self.linkam.close()
 
@@ -124,6 +123,9 @@ class SRLockinAmplifier:
         self.send_command("IMODE 0") # current mode off
         self.send_command("VMODE 1") # voltage input on channel A
         self.send_command("SEN 25") # sets senstivity - check it is suitible
+
+    def set_auto_phase(self, channel):
+        self.send_command(f"AQN{channel}")
 
     def read_dualharmonic_data(self):
         try:
