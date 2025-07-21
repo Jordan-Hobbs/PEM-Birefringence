@@ -31,7 +31,6 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
             print(f"Waiting for stabilisation at {temp} C")
             time.sleep(10)   
             at_temp = hotstage.validate_temperature(temp)
-            time.sleep(10)
             print(f"Temperature stabilised at {temp} C")
 
             for _ in range(120):

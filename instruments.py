@@ -122,7 +122,7 @@ class SRLockinAmplifier:
         self.send_command("REFN2 2") # sets channel two to 2f mode
         self.send_command("IMODE 0") # current mode off
         self.send_command("VMODE 1") # voltage input on channel A
-        self.send_command("SEN 25") # sets senstivity - check it is suitible
+        self.send_command("SEN 26") # sets senstivity - check it is suitible
 
     def set_auto_phase(self, channel):
         self.send_command(f"AQN{channel}")

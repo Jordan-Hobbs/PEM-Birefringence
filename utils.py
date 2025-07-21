@@ -49,10 +49,16 @@ class Analysis:
         elif v1f>0 and v2f<0: # second conditional
             retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
             return retardence, retardence/self.cellgap
+        elif v1f<0 and v2f<0: # third conditional
+            retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
+            return retardence, retardence/self.cellgap
+        elif v1f<0 and v2f>0: # fourth conditional
+            retardence = ((delta+2*np.pi)*self.wavelength)/(2*np.pi)
+            return retardence, retardence/self.cellgap
         else: # needs the rest of the conditionals this else is not a correct solution
             retardence = (delta*self.wavelength)/(2*np.pi)
-            print("Careful! One value out of range")
-            return retardence, retardence/self.cellgap
+            print("Something odd happened here...")
+            return np.nan, np.nan
 
 class OutputWriter:
     def __init__(self, file_name):
