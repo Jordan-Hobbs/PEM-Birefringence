@@ -1,9 +1,10 @@
-import utils
-import time
-
 import numpy as np
 
-def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin, plotter=None):
+import utils
+import time
+import disp
+
+def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin):
 
     if not utils.hotstage_values_check(start, stop, step, rate):
         print("Input params invalid")
@@ -22,6 +23,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
 
     calc = utils.Analysis(cellgap, wavelength)
     output = utils.OutputWriter(file_name)
+    plotter = disp.Plotter()
     try:
         for temp in temps:
             print(f"Running {temp} C process")
@@ -29,7 +31,6 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
             print(f"Waiting for stabilisation at {temp} C")
             time.sleep(10)   
             at_temp = hotstage.validate_temperature(temp)
-            time.sleep(10)
             print(f"Temperature stabilised at {temp} C")
 
             for _ in range(120):
@@ -39,9 +40,7 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
                     ret, biref = calc.compute_biref(x1, x2)
                     output.write_csv_row([c_temp, x1, x2, ret, biref])
                     print(f"[{time.strftime('%H:%M:%S')}] Measurement at {temp} C done")
-
-                    if plotter is not None:
-                        plotter.update(c_temp, ret, biref)
+                    plotter.update(c_temp, ret, biref)
 
                     time.sleep(1)
                     break
