@@ -51,3 +51,37 @@ def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_nam
     finally:
         output.close()
         return
+    
+def run_fast_temperature_sweep(start, stop, wavelength, cellgap, file_name, hotstage, lockin):
+
+    current_temp, _ = hotstage.current_temperature()
+    if current_temp != start:
+        print(f"Going to start temperature at {start} C")
+        hotstage.set_temperature(start, 50)
+        hotstage.validate_temperature(start)
+        print(f"At {start} C waiting for initial stabilisation")
+        time.sleep(60)
+
+    calc = utils.Analysis(cellgap, wavelength)
+    output = utils.OutputWriter(file_name)
+    plotter = disp.Plotter()
+
+    try:
+        hotstage.set_temperature(stop, 10)
+
+        while True:
+            c_temp, _ = hotstage.current_temperature()
+
+            if round(abs(stop - c_temp), 2) <= 0.1:
+                break
+
+            x1, x2 = lockin.read_dualharmonic_data()
+            ret, biref = calc.compute_biref(x1, x2)
+            output.write_csv_row([c_temp, x1, x2, ret, biref])
+            print(f"[{time.strftime('%H:%M:%S')}] Measurement at {c_temp:.2f} °C done")
+            plotter.update(c_temp, ret, biref)
+
+            time.sleep(1)
+    finally:
+        output.close()
+        return
