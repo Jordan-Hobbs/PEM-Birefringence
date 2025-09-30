@@ -1,13 +1,98 @@
-import csv
-
+from instruments import LinkamHotstage, SRLockinAmplifier
 from scipy.special import jv
-import numpy as np
-import matplotlib.pyplot as plt
+import time, numpy as np
 
+
+def run_temperature_sweep(start, stop, step, rate, hotstage, lockin):
+    values_valid = hotstage_values_check(start, stop, step, rate)
+    if values_valid == True:
+        print("Input params valid")
+        temps = temp_generator(start, stop, step)
+        v1f = []
+        v2f = []
+        m_temps = []
+
+        if hotstage.current_temperature()[0] != start:
+            print(f"Going to start temperature at {start} C")
+            hotstage.set_temperature(start, 50)
+            hotstage.validate_temperature(start)
+            print(f"At {start} C waiting for initial stabilisation")
+            time.sleep(60)
+        else:
+            pass
+
+        for temp in temps:
+            attemp = False
+            print(f"Running {temp} C process")
+            hotstage.set_temperature(temp, rate)
+            print(f"Waiting for stabilisation at {temp} C")
+            time.sleep(10)   
+            attemp = hotstage.validate_temperature(temp)
+            time.sleep(10)
+            print(f"Temperature stabilised at {temp} C")
+
+            n=0
+            while n<120:
+            # seems silly to stick all of this in a while loop but cant think 
+            # of a better way to continously check for temp and status
+            # it does allow for timeout check so maybe not so bad
+                c_temp, status = hotstage.current_temperature()
+                if attemp == True and status == "Holding":
+                    x1, x2 = lockin.read_dualharmonic_data()
+                    m_temps.append(c_temp)
+                    v1f.append(x1)
+                    v2f.append(x2)
+                    print(f"Measurement at {temp} C done")
+                    time.sleep(1)
+                    break
+                else:
+                    n += 1
+                    time.sleep(1)
+                    continue
+            if n>=120:
+                m_temps.append(np.nan)
+                v1f.append(np.nan)
+                v2f.append(np.nan)
+                print(f"Measurement at {temp} C skipped due to timeout")
+        
+        hotstage.close()
+        lockin.close()
+        return m_temps, v1f, v2f
+    
+    elif values_valid == False:
+        hotstage.close()
+        lockin.close()
+        return False, False, False
+
+
+def data_analysis(v1f, v2f):
+    ret =[]
+    j1 = jv(1, np.pi/2)
+    j2 = jv(2, np.pi/2)
+    
+    for v1, v2 in zip(v1f, v2f):
+        if v1 == 0 or v2 == 0:
+            ret.append(np.nan)
+            print("Careful! one value found at zero")
+            continue
+
+        delta = np.arctan((v1/v2)*(j2/j1))
+        if v1>0 and v2>0:
+            ret.append((delta*635e-9)/(2*np.pi))
+            continue
+        elif v1>0 and v2<0:
+            ret.append(((delta+np.pi)*635e-9)/(2*np.pi))
+            continue
+        else:
+            ret.append((delta*635e-9)/(2*np.pi))
+            print("Careful! one value out of range")
+            continue
+        # needs the rest of the conditionals this else is not a correct solution
+    return ret
 
 def hotstage_values_check(start, stop, step, rate):
-    values_valid = True
     if not 25 <= start <= 300:
+        values_valid = False
         print(f"Improper start value: {start} must be 25 <= start <= 300")
         values_valid = False
     if not 25 <= stop <= 300:
@@ -19,58 +104,12 @@ def hotstage_values_check(start, stop, step, rate):
     if not 0.1 <= rate <= 30:
         print(f"Improper rate value: {rate} must be 0.1 <= rate <= 30")
         values_valid = False
+    else:
+        values_valid = True
     return values_valid
 
+
 def temp_generator(start, stop, step):
-    if start > stop:
-        num_points = int((start - stop) / step) + 1
-        temps = np.linspace(start, stop, num_points)
-    else:
-        num_points = int((stop - start) / step) + 1
-        temps = np.linspace(start, stop, num_points)
+    num_points = int((start - stop) / step) + 1
+    temps = np.linspace(start, stop, num_points)
     return temps
-
-class Analysis:
-    def __init__(self, cellgap, wavelength):
-        self.j1 = jv(1, np.pi/2)
-        self.j2 = jv(2, np.pi/2)
-        self.cellgap = cellgap
-        self.wavelength = wavelength
-
-    def compute_biref(self, v1f, v2f):
-        if v1f == 0 or v2f == 0:   
-            print("Careful! one value found at zero")
-            return np.nan, np.nan
-
-        delta = np.arctan((v1f/v2f)*(self.j2/self.j1))
-        if v1f>0 and v2f>0:   # first conditional
-            retardence = (delta*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f>0 and v2f<0: # second conditional
-            retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f<0 and v2f<0: # third conditional
-            retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f<0 and v2f>0: # fourth conditional
-            retardence = ((delta+2*np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        else: # needs the rest of the conditionals this else is not a correct solution
-            retardence = (delta*self.wavelength)/(2*np.pi)
-            print("Something odd happened here...")
-            return np.nan, np.nan
-
-class OutputWriter:
-    def __init__(self, file_name):
-        self.file_name = file_name
-        self.file = open(self.file_name, mode = "w", newline = "")
-        self.writer = csv.writer(self.file)
-        self.writer.writerow(["T (C)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
-        self.file.flush()
-
-    def write_csv_row(self, row):
-        self.writer.writerow(row)
-        self.file.flush()
-
-    def close(self):
-        self.file.close()
