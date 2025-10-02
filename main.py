@@ -1,7 +1,6 @@
 import numpy as np
-
-import utils
 import time
+import utils
 import disp
 
 def run_temperature_sweep(start, stop, step, rate, wavelength, cellgap, file_name, hotstage, lockin):
@@ -57,10 +56,10 @@ def run_fast_temperature_sweep(start, stop, wavelength, cellgap, file_name, hots
     current_temp, _ = hotstage.current_temperature()
     if current_temp != start:
         print(f"Going to start temperature at {start} C")
-        hotstage.set_temperature(start, 50)
+        hotstage.set_temperature(start, 100)
         hotstage.validate_temperature(start)
         print(f"At {start} C waiting for initial stabilisation")
-        time.sleep(60)
+        time.sleep(30)
 
     calc = utils.Analysis(cellgap, wavelength)
     output = utils.OutputWriter(file_name)
@@ -82,6 +81,36 @@ def run_fast_temperature_sweep(start, stop, wavelength, cellgap, file_name, hots
             plotter.update(c_temp, ret, biref)
 
             time.sleep(1)
+    finally:
+        output.close()
+        return
+    
+def run_time_sweep(temp, timetotal, timestep, wavelength, cellgap, file_name, hotstage, lockin):
+
+    current_temp, _ = hotstage.current_temperature()
+    if current_temp != temp:
+        print(f"Going to start temperature at {temp} C")
+        hotstage.set_temperature(temp, 100)
+        hotstage.validate_temperature(temp)
+        print(f"At {temp} C waiting for initial stabilisation")
+        time.sleep(30)
+
+    calc = utils.Analysis(cellgap, wavelength)
+    output = utils.OutputWriter(file_name, x_mode="time")
+    plotter = disp.Plotter(x_mode="time")
+    start_time = time.time()
+
+    try:
+        while True:
+            elapsed = time.time() - start_time
+            if elapsed >= timetotal:
+                break
+
+            x1, x2 = lockin.read_dualharmonic_data()
+            ret, biref = calc.compute_biref(x1, x2)
+            output.write_csv_row([elapsed, x1, x2, ret, biref])
+            plotter.update(elapsed, ret, biref)
+            time.sleep(timestep)
     finally:
         output.close()
         return
