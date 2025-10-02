@@ -61,12 +61,16 @@ class Analysis:
             return np.nan, np.nan
 
 class OutputWriter:
-    def __init__(self, file_name):
+    def __init__(self, file_name, x_mode="temp"):
         self.file_name = file_name
         self.file = open(self.file_name, mode = "w", newline = "")
         self.writer = csv.writer(self.file)
-        self.writer.writerow(["T (C)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
-        self.file.flush()
+        if x_mode == "temp":
+            self.writer.writerow(["T (C)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
+            self.file.flush()
+        elif x_mode == "time":
+            self.writer.writerow(["t (s)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
+            self.file.flush()
 
     def write_csv_row(self, row):
         self.writer.writerow(row)
@@ -74,3 +78,4 @@ class OutputWriter:
 
     def close(self):
         self.file.close()
+
