@@ -106,9 +106,9 @@ def run_time_sweep(temp, timetotal, timestep, wavelength, cellgap, file_name, ho
             if elapsed >= timetotal:
                 break
 
-            x1, x2 = lockin.read_dualharmonic_data()
-            ret, biref = calc.compute_biref(x1, x2)
-            output.write_csv_row([elapsed, x1, x2, ret, biref])
+            X1, X2, Y1, Y2 = lockin.read_dualharmonic_data()
+            ret, biref = calc.compute_biref(X1, X2, Y1, Y2)
+            output.write_csv_row([elapsed, X1, X2, Y1, Y2, ret, biref])
             plotter.update(elapsed, ret, biref)
             time.sleep(timestep)
     finally:

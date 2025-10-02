@@ -37,28 +37,38 @@ class Analysis:
         self.cellgap = cellgap
         self.wavelength = wavelength
 
-    def compute_biref(self, v1f, v2f):
-        if v1f == 0 or v2f == 0:   
+    def compute_biref(self, X1, X2, Y1, Y2):
+        # complex phasors
+        V1 = X1 + 1j*Y1
+        V2 = X2 + 1j*Y2
+
+        A1 = np.abs(V1)
+        A2 = np.abs(V2)
+        phi1 = np.angle(V1)   # in radians, range (-pi, pi]
+        phi2 = np.angle(V2)
+
+        if A1 == 0 or A2 == 0:   
             print("Careful! one value found at zero")
             return np.nan, np.nan
 
-        delta = np.arctan((v1f/v2f)*(self.j2/self.j1))
-        if v1f>0 and v2f>0:   # first conditional
-            retardence = (delta*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f>0 and v2f<0: # second conditional
-            retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f<0 and v2f<0: # third conditional
-            retardence = ((delta+np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        elif v1f<0 and v2f>0: # fourth conditional
-            retardence = ((delta+2*np.pi)*self.wavelength)/(2*np.pi)
-            return retardence, retardence/self.cellgap
-        else: # needs the rest of the conditionals this else is not a correct solution
-            retardence = (delta*self.wavelength)/(2*np.pi)
-            print("Something odd happened here...")
-            return np.nan, np.nan
+        B = np.arctan((A1/A2) * (self.j2/self.j1))
+
+        # quadrant mapping via phases
+        if phi1 >= 0 and phi2 >= 0:
+            delta = B
+        elif phi1 >= 0 and phi2 < 0:
+            delta = np.pi - B
+        elif phi1 < 0 and phi2 < 0:
+            delta = np.pi + B
+        elif phi1 < 0 and phi2 >= 0:
+            delta = 2*np.pi - B
+        else:
+            # should not happen, fallback
+            delta = B
+
+        retardence = (delta * self.wavelength) / (2*np.pi)
+        d_n = retardence/self.cellgap
+        return retardence, d_n
 
 class OutputWriter:
     def __init__(self, file_name, x_mode="temp"):
@@ -66,10 +76,10 @@ class OutputWriter:
         self.file = open(self.file_name, mode = "w", newline = "")
         self.writer = csv.writer(self.file)
         if x_mode == "temp":
-            self.writer.writerow(["T (C)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
+            self.writer.writerow(["T (C)", "X1f (V)", "X2f (V)", "Y1f (V)", "Y2f (V)", "R (nm)", "d_n"])
             self.file.flush()
         elif x_mode == "time":
-            self.writer.writerow(["t (s)", "v1f (V)", "v2f (V)", "R (nm)", "d_n"])
+            self.writer.writerow(["t (s)", "X1f (V)", "X2f (V)", "Y1f (V)", "Y2f (V)", "R (nm)", "d_n"])
             self.file.flush()
 
     def write_csv_row(self, row):

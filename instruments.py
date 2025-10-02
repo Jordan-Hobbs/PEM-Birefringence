@@ -115,7 +115,7 @@ class SRLockinAmplifier:
                 (is it set to address 12?)"
             )
 
-    def initialise_singleharmonic(self):
+    def initialise_singleharmonic(self): 
         self.send_command("REFMODE 0") # sets single harmonic mode
         self.send_command("IE 2") # reference set to front input
         self.send_command("REFN 1") # sets channel one to 1f mode
@@ -147,11 +147,13 @@ class SRLockinAmplifier:
 
     def read_dualharmonic_data(self):
         try:
-            v1, _ = self.send_command("X1.")
-            v2, _ = self.send_command("X2.")
-            return float(v1), float(v2)
+            X1, _ = self.send_command("X1.")
+            Y1, _ = self.send_command("Y1.")
+            X2, _ = self.send_command("X2.")
+            Y2, _ = self.send_command("Y2.")
+            return float(X1), float(X2), float(Y1), float(Y2)  
         except ValueError:
-            return np.nan, np.nan
+            return np.nan, np.nan, np.nan, np.nan
 
     def send_command(self, sCmd):
         self.lockin.write(sCmd)
