@@ -115,6 +115,14 @@ class SRLockinAmplifier:
                 (is it set to address 12?)"
             )
 
+    def initialise_singleharmonic(self):
+        self.send_command("REFMODE 0") # sets single harmonic mode
+        self.send_command("IE 2") # reference set to front input
+        self.send_command("REFN 1") # sets channel one to 1f mode
+        self.send_command("IMODE 0") # current mode off
+        self.send_command("VMODE 1") # voltage input on channel A
+        self.send_command("SEN 27") # sets senstivity - check it is suitible
+
     def initialise_dualharmonic(self):
         self.send_command("REFMODE 1") # sets dual harmonic mode
         self.send_command("IE 2") # reference set to front input
@@ -122,8 +130,18 @@ class SRLockinAmplifier:
         self.send_command("REFN2 2") # sets channel two to 2f mode
         self.send_command("IMODE 0") # current mode off
         self.send_command("VMODE 1") # voltage input on channel A
-        self.send_command("SEN 26") # sets senstivity - check it is suitible
+        self.send_command("SEN 27") # sets senstivity - check it is suitible
 
+    def read_singleharmonic_data(self):
+        try:
+            self.send_command("REFN 1") # sets channel one to 1f mode
+            v1, _ = self.send_command("X.")
+            self.send_command("REFN 2") # sets channel one to 2f mode
+            v2, _ = self.send_command("X.")         
+            return float(v1), float(v2)
+        except ValueError:
+            return np.nan, np.nan
+        
     def set_auto_phase(self, channel):
         self.send_command(f"AQN{channel}")
 
@@ -134,7 +152,6 @@ class SRLockinAmplifier:
             return float(v1), float(v2)
         except ValueError:
             return np.nan, np.nan
-
 
     def send_command(self, sCmd):
         self.lockin.write(sCmd)

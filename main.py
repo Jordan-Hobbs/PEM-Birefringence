@@ -74,7 +74,7 @@ def run_fast_temperature_sweep(start, stop, wavelength, cellgap, file_name, hots
             if round(abs(stop - c_temp), 2) <= 0.1:
                 break
 
-            x1, x2 = lockin.read_dualharmonic_data()
+            x1, x2 = lockin.read_singleharmonic_data()
             ret, biref = calc.compute_biref(x1, x2)
             output.write_csv_row([c_temp, x1, x2, ret, biref])
             print(f"[{time.strftime('%H:%M:%S')}] Measurement at {c_temp:.2f} °C done")
